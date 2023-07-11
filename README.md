@@ -4,12 +4,12 @@ An attempt at building task management app on firebase backend
 
 ## Stack
 
-Presentation -> React 
-Client Side Routing -> Wouter
-State Management -> Redux, React-Redux, Redux-Toolkit
-Backend -> Google Firebase
-Builder -> Vite
-Components/ CSS -> Bootstrap 5
+- Presentation -> React 
+- Client Side Routing -> Wouter
+- State Management -> Redux, React-Redux, Redux-Toolkit
+- Backend -> Google Firebase
+- Builder -> Vite
+- Components/ CSS -> Bootstrap 5
 
 ## Roadmap
 
