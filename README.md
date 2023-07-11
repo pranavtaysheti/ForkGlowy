@@ -1,18 +1,29 @@
 # ForkGlowy
 
-An attempt at building workflowy clone using "FAT PP" stack.
+An attempt at building task management app on firebase backend
 
-FA -> FastAPI
+## Stack
 
-T -> Tailwind CSS
+Presentation -> React 
+Client Side Routing -> Wouter
+State Management -> Redux, React-Redux, Redux-Toolkit
+Backend -> Google Firebase
+Builder -> Vite
+Components/ CSS -> Bootstrap 5
 
-P -> Preact
+## Roadmap
 
-P -> PostgreSQL
+### Version 1.1
 
-## Self Hosting
+- [ ] Toast Notification on successful fetch/ error
+- [ ] Move syncing functions to redux thunk middleware
+- [ ] Add listeners to redux to automatically fetch tasks on login
+- [ ] Ability to use app as guest and then upgrade to user
+- [ ] Email verification check
 
-TODO
+### Stretch Goal:
+
+- [ ] Impliment database listeners to better handle state when app is being used by single user in multiple devices.
 
 ## License
 
