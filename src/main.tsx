@@ -18,12 +18,14 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <Switch>
       <Provider store={store}>
         <div className={"d-flex justify-content-center"} >
+          <div className={"container-lg"} >
             <Route path="/login">
               <LoginForm />
             </Route>
             <Route path="/">
               <TodoDiv />
             </Route>
+          </div>
         </div>
       </Provider>
     </Switch>

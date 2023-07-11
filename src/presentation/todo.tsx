@@ -1,8 +1,12 @@
 import { useState, useId } from "react";
 import { TaskStatus, addTodo, deleteTodo, editTodo } from "../tasks";
-import type { RootState } from "../store";
+import { type RootState } from "../store";
 import { useSelector, useDispatch } from "react-redux";
 import type { DefinedTask } from "../tasks";
+import { Redirect } from "wouter";
+import type { User } from "firebase/auth";
+import { logout } from "../login";
+import { uploadTasks, fetchTasks } from "../sync";
 
 enum ItemMode {
   Display = "DISPLAY",
@@ -12,6 +16,22 @@ enum ItemMode {
 type TodoItemArgs = {
   task: DefinedTask;
 };
+
+type UserDisplayArgs = {
+  user: User
+}
+function UserDisplay({user}: UserDisplayArgs) {
+  const dispatch = useDispatch()
+
+  return (
+      <div className={"card text-bg-info border-dark p-2"} >
+        <h3 className={"card-title text-center"}>Welcome! {user.email}</h3>
+        <div className={"d-flex justify-content-center"} >
+          <input type="button" className={"btn btn-danger"} value={"Logout"} onClick={(_e) =>dispatch(logout())}/>
+        </div>
+      </div>
+  )
+}
 
 function TodoItem({ task }: TodoItemArgs) {
   const dispatch = useDispatch();
@@ -30,37 +50,13 @@ function TodoItem({ task }: TodoItemArgs) {
     setMode(ItemMode.Display);
   }
 
-  const SaveButton = () => {
-    return (
-      <input
-        type="button"
-        name="save"
-        value="Save"
-        className={"btn btn-primary"}
-        onClick={(_e) => dispatchEdit()}
-      />
-    );
-  };
-
-  const EditButton = () => {
-    return (
-      <input
-        type="button"
-        name="edit"
-        value={"Edit"}
-        className={"btn btn-warning"}
-        onClick={(_e) => setMode(ItemMode.Input)}
-      />
-    );
-  };
-
   const DeleteButton = () => {
     return (
       <input
         type="button"
         name="delete"
         value={"Delete"}
-        className={"btn btn-danger"}
+        className={"btn btn-danger me-2"}
         onClick={(_e) => dispatch(deleteTodo(id))}
       />
     );
@@ -81,14 +77,13 @@ function TodoItem({ task }: TodoItemArgs) {
 
   const TodoText = () => {
     return (
-      <div className="flex-fill">
         <input
           type="text"
-          className={"text-wrap form-control-plaintext"}
+          className={"flex-fill form-control"}
           value={taskText}
+          onClick={(_e) => setMode(ItemMode.Input)}
           readOnly
         />
-      </div>
     );
   };
 
@@ -96,18 +91,16 @@ function TodoItem({ task }: TodoItemArgs) {
     switch (mode) {
       case ItemMode.Display:
         return (
-          <div className={"d-flex flex-row input-group"}>
-            <TodoText />
-            <EditButton />
+          <div className={"d-flex flex-row"}>
             <DeleteButton />
+            <TodoText />
           </div>
         );
       case ItemMode.Input:
         return (
-          <div className={"d-flex flex-row input-group"}>
-            <TodoInput />
-            <SaveButton />
+          <div className={"d-flex flex-row"}>
             <DeleteButton />
+            <TodoInput />
           </div>
         );
     }
@@ -133,7 +126,7 @@ function TodoForm() {
   };
 
   return (
-    <div className={"text-bg-dark p-2 m-2 input-group"} id={formId}>
+    <div className={"text-bg-dark pt-2 pb-2 input-group"} id={formId}>
       <span className={"input-group-text"}> Add Todo </span>
       <input
         onChange={(e) => setText(e.target.value)}
@@ -169,11 +162,35 @@ function TodoList() {
   );
 }
 
-export default function TodoDiv() {
+function UploadButton() {
   return (
-    <div className={"card text-bg-dark border-dark p-2"}>
-      <TodoForm />
-      <TodoList />
-    </div>
+    <input type="button" value="Upload" className={"btn btn-primary me-2"} onClick={(_e) => uploadTasks()} />
+  )
+}
+function FetchButton() {
+  return (
+    <input type="button" value="Fetch" className={"btn btn-warning ms-2"} onClick={(_e) => fetchTasks()} />
+  )
+}
+export default function TodoDiv() {
+  const user = useSelector((state: RootState) => state.login.user)
+
+  if (!user) {
+    return (
+      <Redirect to="/login"/>
+    )
+  }
+  return (
+    <>
+      <div className={"card text-bg-dark border-dark p-2"}>
+        <UserDisplay user={user} />
+        <TodoForm />
+        <TodoList />
+        <div className={"d-flex justify-content-center"}>
+          <UploadButton />
+          <FetchButton />
+        </div>
+      </div>
+    </>
   );
 }

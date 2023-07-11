@@ -1,11 +1,10 @@
-import { useId, useState } from "react";
+import { Dispatch, SetStateAction, useId, useState } from "react";
 import { capitalizeFirstLetter } from "../common";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../store";
-import { LoginType } from "../login";
+import { useDispatch } from "react-redux";
+import { type RootState } from "../store";
+import { LoginType, login } from "../login";
 import { Redirect } from "wouter";
-import { setUsername, setPassword } from "../login";
-import { loginUser } from "../loginManager";
+import { useSelector } from "react-redux";
 
 enum FieldType {
   Username = "USERNAME",
@@ -15,28 +14,26 @@ enum FieldType {
 type FieldTypeMap = {
   field: FieldType;
   type: string;
-  dispatch: Function;
 };
 
 const fieldTypeMap: Array<FieldTypeMap> = [
   {
     field: FieldType.Username,
     type: "text",
-    dispatch: setUsername,
   },
   {
     field: FieldType.Password,
     type: "password",
-    dispatch: setPassword,
   },
 ];
 
 type FormFieldArgs = {
   fieldType: FieldType;
+  stateArr: [string, Dispatch<SetStateAction<string>>]
 };
-function FormField({ fieldType }: FormFieldArgs) {
-  const [inputText, setInputText] = useState("");
-  const dispatch = useDispatch();
+
+function FormField({ fieldType, stateArr }: FormFieldArgs) {
+  const [state, setState] = stateArr
   const id = useId();
   const fieldItem = fieldTypeMap.find((item) => item.field === fieldType);
 
@@ -50,68 +47,68 @@ function FormField({ fieldType }: FormFieldArgs) {
         name={fieldItem?.field.toLowerCase()}
         type={fieldItem?.type}
         onChange={(e) => {
-          setInputText(e.target.value);
-          dispatch(fieldItem?.dispatch(e.target.value));
+          setState(e.target.value);
         }}
         id={id}
-        value={inputText}
+        value={state}
       />
     </div>
   );
 }
 
 type SubmitButtonArgs = {
-  buttonType: LoginType;
+  buttonType: LoginType,
+  className: string
 };
 
-function SubmitButton({ buttonType }: SubmitButtonArgs) {
-  const buttonStyle = (() => {
-    switch (buttonType) {
-      case LoginType.Login:
-        return "btn btn-primary";
-      case LoginType.Register:
-        return "btn btn-warning";
-    }
-  })();
 
-  return (
-    <button
-      name={buttonType}
-      className={buttonStyle}
-      onClick={(_e) => loginUser(buttonType)}
-    >
-      {capitalizeFirstLetter(buttonType)}
-    </button>
-  );
-}
-
-function LoginButtons() {
-  return (
-    <div className={"btn-group mb-2 p-2"}>
-      <SubmitButton buttonType={LoginType.Login} />
-      <SubmitButton buttonType={LoginType.Register} />
-    </div>
-  );
-}
 
 export default function LoginForm() {
-  /*
-  const loginSlice = useSelector((state: RootState) => state.login);
+  const usernameState = useState("")
+  const passwordState = useState("")
+  const dispatch = useDispatch()
+  const user = useSelector((state: RootState) => state.login.user)
 
-  if (loginSlice.user) {
-    return <Redirect to="/" />;
+  const loginSubmit = (loginType: LoginType) => {
+    const [username, _setUsername] = usernameState;
+    const [password, _setPassword] = passwordState;
+
+    dispatch(login(username, password, loginType));
+  };
+
+  const SubmitButton = ({ buttonType, className }: SubmitButtonArgs) => {
+    return (
+      <button
+        name={buttonType}
+        className={className}
+        onClick={(_e) => loginSubmit(buttonType)}
+        type="button"
+      >
+        {capitalizeFirstLetter(buttonType)}
+      </button>
+    );
   }
-  */
+
+  if (user) {
+    return (
+      <Redirect to="/" />
+    )
+  }
+
   return (
-    <form className={"card w-50 text-bg-dark border-dark p-2"}>
+    <div className={"card text-bg-dark border-dark p-2"}>
       <div className={"card-header"}>
         <h3 className={"card-title"}> Login </h3>
       </div>
       <div className={"card-body"}>
-        <FormField fieldType={FieldType.Username} />
-        <FormField fieldType={FieldType.Password} />
+        <FormField fieldType={FieldType.Username} stateArr={usernameState}/>
+        <FormField fieldType={FieldType.Password} stateArr={passwordState}/>
       </div>
-      <LoginButtons />
-    </form>
+      <div className={"btn-group mb-2 p-2"}>
+        <SubmitButton buttonType={LoginType.Login} className="btn btn-primary"/>
+        <SubmitButton buttonType={LoginType.Register} className="btn btn-warning"/>
+      </div>
+    </div>
   );
+
 }

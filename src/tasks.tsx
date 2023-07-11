@@ -20,6 +20,10 @@ export type DefinedTask = {
 
 export type TaskContainer = Array<DefinedTask>;
 
+export type DatabaseTasks = {
+  [key: string]: Task
+}
+
 export const taskSeed: TaskContainer = [
   { id: "0", status: TaskStatus.Todo, taskText: "Hit the Gym!" },
   { id: "1", status: TaskStatus.Todo, taskText: "Cook Dinner." },
@@ -43,6 +47,15 @@ const tasksSlice = createSlice({
         return { payload: { id, ...task } };
       },
     },
+    setTodos: (state, action: PayloadAction<DatabaseTasks>) => {
+      for (const id in action.payload) {
+        state.push({
+          id: id,
+          taskText: action.payload[id].taskText,
+          status: action.payload[id].status,
+        })
+      }
+    },
     deleteTodo: (state, action: PayloadAction<string>) => {
       for (const i in state) {
         if (state[i].id === action.payload) {
@@ -59,8 +72,11 @@ const tasksSlice = createSlice({
         }
       }
     },
+    clearTodos: (_state) => {
+      return []
+    }
   },
 });
 
 export const tasksReducer = tasksSlice.reducer
-export const { addTodo, deleteTodo, editTodo } = tasksSlice.actions;
+export const { addTodo, deleteTodo, editTodo, clearTodos, setTodos } = tasksSlice.actions;

@@ -1,69 +1,73 @@
 import { createSlice } from "@reduxjs/toolkit"
 import type { PayloadAction } from "@reduxjs/toolkit"
-import type { AuthError, UserCredential } from "firebase/auth"
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, type User } from "firebase/auth"
+import { FirebaseError } from "firebase/app"
+import { auth } from "./firebase"
 
 export enum LoginType {
   Login = "LOGIN",
   Register = "REGISTER",
 };
 
-type LoginInfo = {
-  username: string | undefined,
-  password: string | undefined
-}
-
-const loginInfoInitialState: LoginInfo = {
-  username: undefined,
-  password: undefined
-}
-
-const loginInfoSlice = createSlice({
-  name: "loginInfo",
-  initialState: loginInfoInitialState,
-  reducers: {
-    setUsername(state, action: PayloadAction<string>) {
-      state.username = action.payload
-      console.log(state.username)
-    },
-    setPassword(state, action: PayloadAction<string>) {
-      state.password = action.payload
-      console.log(state.password)
-    }
-  }
-})
 
 export type LoginPayload = {
-  user: UserCredential | undefined
-  error: AuthError | undefined
-}
-
-enum LoginStatus {
-  Loading = "LOADING",
-  LoggedIn = "LOGGED_IN",
-  LoggedOut = "LOGGED_OUT",
+  user: User | null
+  error: FirebaseError | undefined
 }
 
 const loginInitialState: LoginPayload = {
   error: undefined,
-  user: undefined
+  user: null
 }
 
 const loginSlice = createSlice({
   name: "login",
   initialState: loginInitialState,
   reducers: {
-    login: (_state, action: PayloadAction<LoginPayload>) => {
-        return action.payload
+    login: {
+      reducer: (state, action: PayloadAction<FirebaseError | undefined>) => {
+        state.error = action.payload
+      },
+      prepare: (email: string, password: string, loginType: LoginType) => {
+        let result: FirebaseError | undefined = undefined
+        switch (loginType) {
+          case LoginType.Login:
+            signInWithEmailAndPassword(auth, email, password)
+            .catch((error: FirebaseError) => result = error)
+            break;
+          case LoginType.Register:
+            createUserWithEmailAndPassword(auth, email, password)
+            .catch((error: FirebaseError) => result = error)
+            break;
+        }
+        return { payload: result }
+      }
     },
-    logout: (_state) => {
-        return loginInitialState
+    logout: {
+      reducer: (state, action: PayloadAction<FirebaseError | undefined>) => {
+        state.error = action.payload
+      },
+      prepare: () => {
+        let result: FirebaseError | undefined = undefined
+        signOut(auth)
+        .catch((error: FirebaseError) => (result = error))
+        return ({payload: result})
+      }
     },
+    setUser: {
+      reducer: (state, action: PayloadAction<User | null>) => {
+        state.user = action.payload
+      },
+      prepare: (action: User | null) => {
+        let result = action
+        if (action) {
+          result = result?.toJSON() as User
+        }
+        return {payload: result}
+      }
+    }
   },
-  
 })
 
-export const loginInfoReducer = loginInfoSlice.reducer
-export const { setUsername, setPassword } = loginInfoSlice.actions
-
 export const loginReducer = loginSlice.reducer
-export const { login, logout } = loginSlice.actions
+export const { login, logout, setUser } = loginSlice.actions
