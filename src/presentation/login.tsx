@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useId, useState } from "react";
 import { capitalizeFirstLetter } from "../common";
 import { useDispatch } from "react-redux";
-import { type RootState } from "../store";
+import { AppDispatch, type RootState } from "../store";
 import { LoginType, login } from "../login";
 import { Redirect } from "wouter";
 import { useSelector } from "react-redux";
@@ -66,14 +66,14 @@ type SubmitButtonArgs = {
 export default function LoginForm() {
   const usernameState = useState("")
   const passwordState = useState("")
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
   const user = useSelector((state: RootState) => state.login.user)
 
   const loginSubmit = (loginType: LoginType) => {
     const [username, _setUsername] = usernameState;
     const [password, _setPassword] = passwordState;
 
-    dispatch(login(username, password, loginType));
+    dispatch(login({email: username, password, loginType}));
   };
 
   const SubmitButton = ({ buttonType, className }: SubmitButtonArgs) => {

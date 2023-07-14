@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 import type { PayloadAction } from "@reduxjs/toolkit"
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, type User } from "firebase/auth"
 import { FirebaseError } from "firebase/app"
@@ -13,47 +13,46 @@ export enum LoginType {
 export type LoginPayload = {
   user: User | null
   error: FirebaseError | undefined
+  loading: boolean
 }
 
 const loginInitialState: LoginPayload = {
   error: undefined,
-  user: null
+  user: null,
+  loading: false
 }
+
+export type LoginData = {
+  email: string;
+  password: string;
+  loginType: LoginType;
+}
+export const login = createAsyncThunk(
+  "login/loginUser",
+  async (loginData: LoginData) => {
+
+    const { email, password, loginType} = loginData
+
+    switch (loginType) {
+      case LoginType.Login:
+        return signInWithEmailAndPassword(auth, email, password)
+      case LoginType.Register:
+        return createUserWithEmailAndPassword(auth, email, password)
+    }
+  }
+)
+
+export const logout = createAsyncThunk(
+  "login/logoutUser",
+  async () => {
+    return signOut(auth)
+  }
+)
 
 const loginSlice = createSlice({
   name: "login",
   initialState: loginInitialState,
   reducers: {
-    login: {
-      reducer: (state, action: PayloadAction<FirebaseError | undefined>) => {
-        state.error = action.payload
-      },
-      prepare: (email: string, password: string, loginType: LoginType) => {
-        let result: FirebaseError | undefined = undefined
-        switch (loginType) {
-          case LoginType.Login:
-            signInWithEmailAndPassword(auth, email, password)
-            .catch((error: FirebaseError) => result = error)
-            break;
-          case LoginType.Register:
-            createUserWithEmailAndPassword(auth, email, password)
-            .catch((error: FirebaseError) => result = error)
-            break;
-        }
-        return { payload: result }
-      }
-    },
-    logout: {
-      reducer: (state, action: PayloadAction<FirebaseError | undefined>) => {
-        state.error = action.payload
-      },
-      prepare: () => {
-        let result: FirebaseError | undefined = undefined
-        signOut(auth)
-        .catch((error: FirebaseError) => (result = error))
-        return ({payload: result})
-      }
-    },
     setUser: {
       reducer: (state, action: PayloadAction<User | null>) => {
         state.user = action.payload
@@ -67,7 +66,31 @@ const loginSlice = createSlice({
       }
     }
   },
+  extraReducers: (builder) => builder
+    .addCase(login.pending, (state) => {
+      state.loading = true
+    })
+    .addCase(login.rejected, (state,action) => {
+      state.loading = false
+      state.error = action.error as FirebaseError
+    })
+    .addCase(login.fulfilled, (state) => {
+      state.loading = false
+      state.error = undefined
+    })
+    .addCase(logout.fulfilled, (state) => {
+      state.loading = false
+      state.error = undefined
+    })
+    .addCase(logout.pending, (state) => {
+      state.loading = true
+    })
+    .addCase(logout.rejected, (state, action) => {
+      state.loading = false
+      state.error = action.error as FirebaseError
+    })
+
 })
 
 export const loginReducer = loginSlice.reducer
-export const { login, logout, setUser } = loginSlice.actions
+export const { setUser } = loginSlice.actions

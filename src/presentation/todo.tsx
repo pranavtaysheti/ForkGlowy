@@ -1,17 +1,11 @@
 import { useState, useId } from "react";
-import { TaskStatus, addTodo, deleteTodo, editTodo } from "../tasks";
-import { type RootState } from "../store";
+import { TaskStatus, addTodo, deleteTodo } from "../tasks";
+import { AppDispatch, type RootState } from "../store";
 import { useSelector, useDispatch } from "react-redux";
 import type { DefinedTask } from "../tasks";
 import { Redirect } from "wouter";
 import type { User } from "firebase/auth";
 import { logout } from "../login";
-import { uploadTasks, fetchTasks } from "../sync";
-
-enum ItemMode {
-  Display = "DISPLAY",
-  Input = "INPUT",
-}
 
 type TodoItemArgs = {
   task: DefinedTask;
@@ -21,7 +15,7 @@ type UserDisplayArgs = {
   user: User
 }
 function UserDisplay({user}: UserDisplayArgs) {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
 
   return (
       <div className={"card text-bg-info border-dark p-2"} >
@@ -34,21 +28,9 @@ function UserDisplay({user}: UserDisplayArgs) {
 }
 
 function TodoItem({ task }: TodoItemArgs) {
-  const dispatch = useDispatch();
-  const { id, status, taskText } = task;
-  const [mode, setMode] = useState(ItemMode.Display);
-  const [inputText, setInputText] = useState("");
-
-  function dispatchEdit() {
-    dispatch(
-      editTodo({
-        id,
-        status,
-        taskText: inputText,
-      })
-    );
-    setMode(ItemMode.Display);
-  }
+  const dispatch = useDispatch<AppDispatch>();
+  const { databaseId, taskText } = task;
+  const [inputText, setInputText] = useState(taskText);
 
   const DeleteButton = () => {
     return (
@@ -57,61 +39,43 @@ function TodoItem({ task }: TodoItemArgs) {
         name="delete"
         value={"Delete"}
         className={"btn btn-danger me-2"}
-        onClick={(_e) => dispatch(deleteTodo(id))}
+        onClick={(_e) => dispatch(deleteTodo(databaseId))}
       />
     );
   };
 
+  const CheckBox = () => {
+    return (
+      <input className={"form-check-input me-2 p-3"}
+      type="checkbox"
+      />
+    )
+  }
   const TodoInput = () => {
     return (
       <input
         onChange={(e) => setInputText(e.target.value)}
         value={inputText}
-        onKeyDown={(e) => (e.key === "Enter" ? dispatchEdit() : null)}
-        autoFocus
-        className={"flex-fill form-control"}
+        className={"flex-fill form-control-plaintext"}
         placeholder="Drink water"
       />
     );
   };
 
-  const TodoText = () => {
-    return (
-        <input
-          type="text"
-          className={"flex-fill form-control"}
-          value={taskText}
-          onClick={(_e) => setMode(ItemMode.Input)}
-          readOnly
-        />
-    );
-  };
-
-  const result = () => {
-    switch (mode) {
-      case ItemMode.Display:
-        return (
-          <div className={"d-flex flex-row"}>
-            <DeleteButton />
-            <TodoText />
-          </div>
-        );
-      case ItemMode.Input:
-        return (
-          <div className={"d-flex flex-row"}>
-            <DeleteButton />
-            <TodoInput />
-          </div>
-        );
-    }
-  };
-
-  return <li className={"mb-1 list-group-item"}>{result()}</li>;
+  return (
+    <li className={"list-group-item"}>
+      <div className={"d-flex flex-row"}>
+        <DeleteButton />
+        <CheckBox />
+        <TodoInput />
+      </div>
+    </li>
+  )
 }
 
 function TodoForm() {
   const [text, setText] = useState<string>("");
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const formId = useId();
   const buttonId = useId();
 
@@ -121,8 +85,8 @@ function TodoForm() {
         status: TaskStatus.Todo,
         taskText: text,
       })
-    ),
-      setText("");
+    )
+    setText("");
   };
 
   return (
@@ -131,7 +95,7 @@ function TodoForm() {
       <input
         onChange={(e) => setText(e.target.value)}
         value={text}
-        onKeyDown={(e) => (e.key === "Enter" ? submitForm() : null)}
+        onKeyDown={(e) => {if (e.key === "Enter") {submitForm()}}}
         className={"form-control"}
         type="text"
         name="task-text"
@@ -148,32 +112,31 @@ function TodoForm() {
   );
 }
 
-function TodoList() {
+type TodoListArgs = {
+  showCompleted: boolean;
+};
+
+function TodoList({showCompleted}: TodoListArgs) {
   const tasks = useSelector((state: RootState) => state.tasks);
 
   return (
     <>
       <ul className="list-group">
-        {tasks.map((task) => (
-          <TodoItem task={task} key={task.id} />
-        ))}
+        {tasks.map((task) => {
+          if (!(showCompleted === false && task.status === TaskStatus.Done)) {
+            return (
+              <TodoItem task={task} key={task.databaseId} />
+            )  
+          }
+        })}
       </ul>
     </>
   );
 }
 
-function UploadButton() {
-  return (
-    <input type="button" value="Upload" className={"btn btn-primary me-2"} onClick={(_e) => uploadTasks()} />
-  )
-}
-function FetchButton() {
-  return (
-    <input type="button" value="Fetch" className={"btn btn-warning ms-2"} onClick={(_e) => fetchTasks()} />
-  )
-}
 export default function TodoDiv() {
   const user = useSelector((state: RootState) => state.login.user)
+  const [showCompleted, setShowCompleted] = useState<boolean>(true)
 
   if (!user) {
     return (
@@ -185,10 +148,9 @@ export default function TodoDiv() {
       <div className={"card text-bg-dark border-dark p-2"}>
         <UserDisplay user={user} />
         <TodoForm />
-        <TodoList />
-        <div className={"d-flex justify-content-center"}>
-          <UploadButton />
-          <FetchButton />
+        <TodoList showCompleted={showCompleted}/>
+        <div>
+          <input type="checkbox" onChange={(e) => setShowCompleted(e.target.checked)} />
         </div>
       </div>
     </>
