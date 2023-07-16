@@ -2,8 +2,6 @@
 
 An attempt at building task management app on firebase backend
 
-## Stack
-
 **Try at:** [forkglowy.web.app](https://forkglowy.web.app)
 
 ## Stack
