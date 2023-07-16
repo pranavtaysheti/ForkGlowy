@@ -4,26 +4,24 @@ An attempt at building task management app on firebase backend
 
 ## Stack
 
-- Presentation -> React 
-- Client Side Routing -> Wouter
-- State Management -> Redux, React-Redux, Redux-Toolkit
-- Backend -> Google Firebase
-- Builder -> Vite
-- Components/ CSS -> Bootstrap 5
+**Try at:** [forkglowy.web.app](https://forkglowy.web.app)
+
+## Stack
+
+- **UI :** React JS
+- **State Management :** Redux Toolkit
+- **Backend :** Google Firebase
+- **CSS/ Components :** Bootstrap 5
+- **Router :** Wouter
+- **Builder :** Vite
 
 ## Roadmap
 
-### Version 1.1
-
-- [ ] Toast Notification on successful fetch/ error
-- [ ] Move syncing functions to redux thunk middleware
-- [ ] Add listeners to redux to automatically fetch tasks on login
-- [ ] Ability to use app as guest and then upgrade to user
-- [ ] Email verification check
-
-### Stretch Goal:
-
-- [ ] Impliment database listeners to better handle state when app is being used by single user in multiple devices.
+- [ ] Ability to use app as guest and upgrade to login user.
+- [ ] An status indicator to know sync status.
+- [ ] Use WebStorage API to decrease app load times.
+- [ ] Support Installation as PWA App on Google Chrome.
+- [ ] Improve Edit todo dispatch to use less data.
 
 ## License
 
