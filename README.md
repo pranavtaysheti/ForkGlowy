@@ -17,6 +17,8 @@ An attempt at building task management app on firebase backend
 
 ## Roadmap
 
+### Version 1.1
+
 - [ ] Ability to use app as guest and upgrade to login user.
 - [ ] An status indicator to know sync status.
 - [ ] Use WebStorage API to decrease app load times.
