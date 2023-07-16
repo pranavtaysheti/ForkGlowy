@@ -1,4 +1,4 @@
-import { useState, useId } from "react";
+import { useState, useId, useRef } from "react";
 import { TaskStatus, addTodo, deleteTodo } from "../tasks";
 import { AppDispatch, type RootState } from "../store";
 import { useSelector, useDispatch } from "react-redux";
@@ -31,6 +31,8 @@ function TodoItem({ task }: TodoItemArgs) {
   const dispatch = useDispatch<AppDispatch>();
   const { databaseId, taskText } = task;
   const [inputText, setInputText] = useState(taskText);
+  const inputId = useId()
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const DeleteButton = () => {
     return (
@@ -54,10 +56,17 @@ function TodoItem({ task }: TodoItemArgs) {
   const TodoInput = () => {
     return (
       <input
-        onChange={(e) => setInputText(e.target.value)}
+        onChange={(e) => {
+          setInputText(e.target.value);
+          inputRef.current?.focus()
+        }}
+        type="text"
         value={inputText}
         className={"flex-fill form-control-plaintext"}
         placeholder="Drink water"
+        name="edit-task-text"
+        ref={inputRef}
+        id={inputId}
       />
     );
   };
@@ -98,7 +107,7 @@ function TodoForm() {
         onKeyDown={(e) => {if (e.key === "Enter") {submitForm()}}}
         className={"form-control"}
         type="text"
-        name="task-text"
+        name="add-task-text"
       />
       <input
         className="btn btn-success"
@@ -120,17 +129,15 @@ function TodoList({showCompleted}: TodoListArgs) {
   const tasks = useSelector((state: RootState) => state.tasks);
 
   return (
-    <>
-      <ul className="list-group">
-        {tasks.map((task) => {
-          if (!(showCompleted === false && task.status === TaskStatus.Done)) {
-            return (
-              <TodoItem task={task} key={task.databaseId} />
-            )  
-          }
-        })}
-      </ul>
-    </>
+    <ul className="list-group">
+      {tasks.map((task) => {
+        if (!(showCompleted === false && task.status === TaskStatus.Done)) {
+          return (
+            <TodoItem task={task} key={task.databaseId} />
+          )  
+        }
+      })}
+    </ul>
   );
 }
 
@@ -144,15 +151,13 @@ export default function TodoDiv() {
     )
   }
   return (
-    <>
-      <div className={"card text-bg-dark border-dark p-2"}>
-        <UserDisplay user={user} />
-        <TodoForm />
-        <TodoList showCompleted={showCompleted}/>
-        <div>
-          <input type="checkbox" onChange={(e) => setShowCompleted(e.target.checked)} />
-        </div>
+    <div className={"card text-bg-dark border-dark p-2"}>
+      <UserDisplay user={user} />
+      <TodoForm />
+      <TodoList showCompleted={showCompleted}/>
+      <div>
+        <input type="checkbox" onChange={(e) => setShowCompleted(e.target.checked)} />
       </div>
-    </>
+    </div>
   );
 }
