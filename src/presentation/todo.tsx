@@ -1,5 +1,5 @@
-import { useState, useId, useRef } from "react";
-import { TaskStatus, addTodo, deleteTodo } from "../tasks";
+import { useState, useId } from "react";
+import { addTodo, modifyTodo, setVisiblity } from "../tasks";
 import { AppDispatch, type RootState } from "../store";
 import { useSelector, useDispatch } from "react-redux";
 import type { DefinedTask } from "../tasks";
@@ -12,74 +12,86 @@ type TodoItemArgs = {
 };
 
 type UserDisplayArgs = {
-  user: User
-}
-function UserDisplay({user}: UserDisplayArgs) {
-  const dispatch = useDispatch<AppDispatch>()
+  user: User;
+};
+
+function UserDisplay({ user }: UserDisplayArgs) {
+  const dispatch = useDispatch<AppDispatch>();
 
   return (
-      <div className={"card text-bg-info border-dark p-2"} >
-        <h3 className={"card-title text-center"}>Welcome! {user.email}</h3>
-        <div className={"d-flex justify-content-center"} >
-          <input type="button" className={"btn btn-danger"} value={"Logout"} onClick={(_e) =>dispatch(logout())}/>
-        </div>
+    <div className={"card text-bg-info border-dark p-2"}>
+      <h3 className={"card-title text-center"}>Welcome! {user.email}</h3>
+      <div className={"d-flex justify-content-center"}>
+        <input
+          type="button"
+          className={"btn btn-danger"}
+          value={"Logout"}
+          onClick={(_e) => dispatch(logout())}
+        />
       </div>
-  )
+    </div>
+  );
+}
+
+function DeleteButton({ task }: TodoItemArgs) {
+  const dispatch = useDispatch<AppDispatch>();
+  const { databaseId } = task;
+  return (
+    <input
+      type="button"
+      name="delete"
+      value={"Delete"}
+      className={"btn btn-danger me-1"}
+      onClick={(_e) => dispatch(modifyTodo({ databaseId, deleteThis: true }))}
+    />
+  );
+}
+
+function CheckBox({ task }: TodoItemArgs) {
+  const dispatch = useDispatch<AppDispatch>();
+  const { status, databaseId } = task;
+
+  return (
+    <input
+      className={"form-check-input me-2"}
+      type="checkbox"
+      checked={Boolean(status)}
+      onChange={(e) =>
+        dispatch(modifyTodo({ databaseId, newStatus: e.target.checked }))
+      }
+    />
+  );
+}
+
+function TodoInput({ task }: TodoItemArgs) {
+  const dispatch = useDispatch<AppDispatch>();
+  const { databaseId, taskText } = task;
+  const [text, setText] = useState(taskText);
+
+  return (
+    <input
+      onChange={(e) => {
+        setText(e.target.value);
+      }}
+      type="text"
+      value={text}
+      className={"flex-fill form-control-plaintext"}
+      placeholder="Drink water"
+      name="edit-task-text"
+    />
+  );
 }
 
 function TodoItem({ task }: TodoItemArgs) {
-  const dispatch = useDispatch<AppDispatch>();
-  const { databaseId, taskText } = task;
-  const [inputText, setInputText] = useState(taskText);
-  const inputId = useId()
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const DeleteButton = () => {
-    return (
-      <input
-        type="button"
-        name="delete"
-        value={"Delete"}
-        className={"btn btn-danger me-2"}
-        onClick={(_e) => dispatch(deleteTodo(databaseId))}
-      />
-    );
-  };
-
-  const CheckBox = () => {
-    return (
-      <input className={"form-check-input me-2 p-3"}
-      type="checkbox"
-      />
-    )
-  }
-  const TodoInput = () => {
-    return (
-      <input
-        onChange={(e) => {
-          setInputText(e.target.value);
-          inputRef.current?.focus()
-        }}
-        type="text"
-        value={inputText}
-        className={"flex-fill form-control-plaintext"}
-        placeholder="Drink water"
-        name="edit-task-text"
-        ref={inputRef}
-        id={inputId}
-      />
-    );
-  };
-
   return (
     <li className={"list-group-item"}>
       <div className={"d-flex flex-row"}>
-        <DeleteButton />
-        <CheckBox />
-        <TodoInput />
+        <DeleteButton task={task} />
+        <CheckBox task={task} />
+        <TodoInput task={task} />
       </div>
     </li>
-  )
+  );
 }
 
 function TodoForm() {
@@ -91,10 +103,10 @@ function TodoForm() {
   const submitForm = () => {
     dispatch(
       addTodo({
-        status: TaskStatus.Todo,
+        status: false,
         taskText: text,
       })
-    )
+    );
     setText("");
   };
 
@@ -104,7 +116,11 @@ function TodoForm() {
       <input
         onChange={(e) => setText(e.target.value)}
         value={text}
-        onKeyDown={(e) => {if (e.key === "Enter") {submitForm()}}}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            submitForm();
+          }
+        }}
         className={"form-control"}
         type="text"
         name="add-task-text"
@@ -121,43 +137,56 @@ function TodoForm() {
   );
 }
 
-type TodoListArgs = {
-  showCompleted: boolean;
-};
-
-function TodoList({showCompleted}: TodoListArgs) {
+function TodoList() {
   const tasks = useSelector((state: RootState) => state.tasks);
+  const tasksVisiblity = useSelector(
+    (state: RootState) => state.tasksVisiblity
+  );
+  const showCompleted = tasksVisiblity.showCompleted;
 
   return (
     <ul className="list-group">
       {tasks.map((task) => {
-        if (!(showCompleted === false && task.status === TaskStatus.Done)) {
-          return (
-            <TodoItem task={task} key={task.databaseId} />
-          )  
+        if (!(showCompleted === false && task.status === true) && !task.isDeleted) {
+          return <TodoItem task={task} key={task.databaseId} />;
         }
       })}
     </ul>
   );
 }
 
-export default function TodoDiv() {
-  const user = useSelector((state: RootState) => state.login.user)
-  const [showCompleted, setShowCompleted] = useState<boolean>(true)
+function VisiblityCheckbox() {
+  const tasksVisiblity = useSelector(
+    (state: RootState) => state.tasksVisiblity
+  );
+  const dispatch = useDispatch<AppDispatch>();
 
+  return (
+    <input
+      type="checkbox"
+      onChange={(e) =>
+        dispatch(
+          setVisiblity({
+            showCompleted: e.target.checked,
+          })
+        )
+      }
+      checked={tasksVisiblity.showCompleted}
+    />
+  );
+}
+
+export default function TodoDiv() {
+  const user = useSelector((state: RootState) => state.login.user);
   if (!user) {
-    return (
-      <Redirect to="/login"/>
-    )
+    return <Redirect to="/login" />;
   }
   return (
     <div className={"card text-bg-dark border-dark p-2"}>
       <UserDisplay user={user} />
       <TodoForm />
-      <TodoList showCompleted={showCompleted}/>
-      <div>
-        <input type="checkbox" onChange={(e) => setShowCompleted(e.target.checked)} />
-      </div>
+      <TodoList />
+      <VisiblityCheckbox />
     </div>
   );
 }

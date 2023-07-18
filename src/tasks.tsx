@@ -1,17 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { push, ref, remove, set } from "firebase/database";
+import { push, ref, remove, set, update } from "firebase/database";
 import { database } from "./firebase";
 import type { RootState } from "./store";
 import { nanoid } from "nanoid";
 
-export enum TaskStatus {
-  Todo = "TODO",
-  Done = "DONE",
-}
-
 export type Task = {
-  status: TaskStatus;
+  status: boolean;
   taskText: string;
 };
 
@@ -24,7 +19,7 @@ enum SyncStatus {
 export type DefinedTask = {
   databaseId: string;
   requestId: string;
-  status?: TaskStatus;
+  status?: boolean;
   taskText?: string;
   isDeleted: boolean;
   syncStatus: SyncStatus;
@@ -50,31 +45,40 @@ export const addTodo = createAsyncThunk(
       const userTasksRef = ref(database, "users/" + uid);
       const newTaskRef = push(userTasksRef);
       if (newTaskRef.key) {
-        return set(newTaskRef, { status, taskText })
-        .then(() => thunkAPI.fulfillWithValue(newTaskRef.key))
+        return set(newTaskRef, { status, taskText }).then(() =>
+          thunkAPI.fulfillWithValue(newTaskRef.key)
+        );
       }
     }
   }
 );
 
-/*
-export const editTodo = createAsyncThunk(
-  "tasks/editTodo",
-  async (databaseId: string, thunkAPI) => {
-    //TODO: Think if it makes sense to merge it with delete Todo
-  }
-)
-*/
-export const deleteTodo = createAsyncThunk(
-  "tasks/deletoTodo",
-  async (databaseId: string, thunkAPI) => {
+type ModifyTodoArgs = {
+  databaseId: string;
+  newStatus?: boolean;
+  newTaskText?: string;
+  deleteThis?: boolean;
+};
+export const modifyTodo = createAsyncThunk(
+  "tasks/modifyTodo",
+  async (actionData: ModifyTodoArgs, thunkAPI) => {
+    const { databaseId, newStatus, newTaskText, deleteThis } = actionData;
     const state = thunkAPI.getState() as RootState;
     const user = state.login.user;
 
     if (user) {
       const uid = user.uid;
       const taskRef = ref(database, "users/" + uid + "/" + databaseId);
-      return remove(taskRef);
+      if (newStatus) {
+        return update(taskRef, { status: newStatus });
+      }
+      if (newTaskText) {
+        // return update(taskRef, {taskText: newTaskText})
+        // TODO: Impliment redux listeners
+      }
+      if (deleteThis) {
+        return remove(taskRef);
+      }
     }
   }
 );
@@ -98,9 +102,10 @@ const tasksSlice = createSlice({
         });
       }
     },
-    clearTodos: state => state.splice(0)
+    clearTodos: (state) => state.splice(0),
   },
-  extraReducers: (builder) => builder
+  extraReducers: (builder) =>
+    builder
       .addCase(addTodo.pending, (state, action) => {
         const { status, taskText } = action.meta.arg;
         state.push({
@@ -109,14 +114,14 @@ const tasksSlice = createSlice({
           status,
           isDeleted: false,
           requestId: action.meta.requestId,
-          databaseId: nanoid()
-        })
+          databaseId: nanoid(),
+        });
       })
       .addCase(addTodo.fulfilled, (state, action) => {
         for (const i in state) {
           if (state[i].requestId === action.meta.requestId) {
             state[i].syncStatus = SyncStatus.Synced;
-            state[i].databaseId = action.payload as string
+            state[i].databaseId = action.payload as string;
             break;
           }
         }
@@ -129,31 +134,67 @@ const tasksSlice = createSlice({
           }
         }
       })
-      .addCase(deleteTodo.pending, (state, action) => {
+      .addCase(modifyTodo.pending, (state, action) => {
+        const { databaseId, deleteThis, newStatus } = action.meta.arg;
         for (const i in state) {
-          if (state[i].databaseId === action.meta.arg) {
-            state[i].isDeleted = true;
+          if (state[i].databaseId === databaseId) {
+            if (deleteThis) {
+              state[i].isDeleted = true;
+            }
+            if (typeof newStatus === "boolean") {
+              state[i].status = newStatus;
+            }
             break;
           }
         }
       })
-      .addCase(deleteTodo.fulfilled, (state, action) => {
+      .addCase(modifyTodo.fulfilled, (state, action) => {
+        const { databaseId, deleteThis } = action.meta.arg;
         for (const i in state) {
-          if (state[i].databaseId === action.meta.arg) {
-            state.splice(parseInt(i), 1);
+          if (state[i].databaseId === databaseId) {
+            if (deleteThis) {
+              state.splice(parseInt(i), 1);
+            }
             break;
           }
         }
       })
-      .addCase(deleteTodo.rejected, (state, action) => {
+      .addCase(modifyTodo.rejected, (state, action) => {
+        const { databaseId, deleteThis, newStatus } = action.meta.arg;
         for (const i in state) {
-          if (state[i].databaseId === action.meta.arg) {
-            state[i].isDeleted = false;
+          if (state[i].databaseId === databaseId) {
+            if (deleteThis) {
+              state[i].isDeleted = false;
+            }
+            if (typeof newStatus === "boolean") {
+              state[i].status = !newStatus;
+            }
             break;
           }
         }
       }),
 });
 
+type TasksVisiblity = {
+  showCompleted: boolean
+}
+const tasksVisiblityInitial = {
+  showCompleted: false
+}
+const tasksVisiblitySlice = createSlice({
+  name: "tasksVisiblity",
+  initialState: tasksVisiblityInitial,
+  reducers: {
+    setVisiblity: (state, action: PayloadAction<TasksVisiblity>) => {
+      state.showCompleted = action.payload.showCompleted
+    }
+  }
+}
+
+)
+
+export const tasksVisiblityReducer = tasksVisiblitySlice.reducer
 export const tasksReducer = tasksSlice.reducer;
+
 export const { setTodos, clearTodos } = tasksSlice.actions;
+export const { setVisiblity } = tasksVisiblitySlice.actions;
