@@ -1,15 +1,12 @@
 import { useState, useId } from "react";
-import { addTodo, modifyTodo, setVisiblity } from "../tasks";
+import { addTodo, setVisiblity } from "../tasks";
 import { AppDispatch, type RootState } from "../store";
 import { useSelector, useDispatch } from "react-redux";
-import type { DefinedTask } from "../tasks";
+import TodoItem from "../components/todo_item/todo_item";
 import { Redirect } from "wouter";
 import type { User } from "firebase/auth";
 import { logout } from "../login";
 
-type TodoItemArgs = {
-  task: DefinedTask;
-};
 
 type UserDisplayArgs = {
   user: User;
@@ -33,66 +30,8 @@ function UserDisplay({ user }: UserDisplayArgs) {
   );
 }
 
-function DeleteButton({ task }: TodoItemArgs) {
-  const dispatch = useDispatch<AppDispatch>();
-  const { databaseId } = task;
-  return (
-    <input
-      type="button"
-      name="delete"
-      value={"Delete"}
-      className={"btn btn-danger me-1"}
-      onClick={(_e) => dispatch(modifyTodo({ databaseId, deleteThis: true }))}
-    />
-  );
-}
 
-function CheckBox({ task }: TodoItemArgs) {
-  const dispatch = useDispatch<AppDispatch>();
-  const { status, databaseId } = task;
 
-  return (
-    <input
-      className={"form-check-input me-2"}
-      type="checkbox"
-      checked={Boolean(status)}
-      onChange={(e) =>
-        dispatch(modifyTodo({ databaseId, newStatus: e.target.checked }))
-      }
-    />
-  );
-}
-
-function TodoInput({ task }: TodoItemArgs) {
-  const dispatch = useDispatch<AppDispatch>();
-  const { databaseId, taskText } = task;
-  const [text, setText] = useState(taskText);
-
-  return (
-    <input
-      onChange={(e) => {
-        setText(e.target.value);
-      }}
-      type="text"
-      value={text}
-      className={"flex-fill form-control-plaintext"}
-      placeholder="Drink water"
-      name="edit-task-text"
-    />
-  );
-}
-
-function TodoItem({ task }: TodoItemArgs) {
-  return (
-    <li className={"list-group-item"}>
-      <div className={"d-flex flex-row"}>
-        <DeleteButton task={task} />
-        <CheckBox task={task} />
-        <TodoInput task={task} />
-      </div>
-    </li>
-  );
-}
 
 function TodoForm() {
   const [text, setText] = useState<string>("");
@@ -145,13 +84,15 @@ function TodoList() {
   const showCompleted = tasksVisiblity.showCompleted;
 
   return (
-    <ul className="list-group">
-      {tasks.map((task) => {
-        if (!(showCompleted === false && task.status === true) && !task.isDeleted) {
-          return <TodoItem task={task} key={task.databaseId} />;
-        }
-      })}
-    </ul>
+    <div className="card text-bg-dark">
+      <ul className="list-group list-group-flush bg-transparent">
+        {tasks.map((task) => {
+          if (!(showCompleted === false && task.status === true) && !task.isDeleted) {
+            return <TodoItem task={task} key={task.databaseId} />;
+          }
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -160,19 +101,29 @@ function VisiblityCheckbox() {
     (state: RootState) => state.tasksVisiblity
   );
   const dispatch = useDispatch<AppDispatch>();
+  const checkboxId = useId()
 
   return (
-    <input
-      type="checkbox"
-      onChange={(e) =>
-        dispatch(
-          setVisiblity({
-            showCompleted: e.target.checked,
-          })
-        )
-      }
-      checked={tasksVisiblity.showCompleted}
-    />
+    <div className="form-check">
+      <input
+        type="checkbox"
+        onChange={(e) =>
+          dispatch(
+            setVisiblity({
+              showCompleted: e.target.checked,
+            })
+          )
+        }
+        checked={tasksVisiblity.showCompleted}
+        className="form-check-input"
+        id={checkboxId}
+      />
+
+      <label className="form-check-label" htmlFor={checkboxId} >
+        Show Completed
+      </label>
+
+    </div>
   );
 }
 
@@ -182,11 +133,13 @@ export default function TodoDiv() {
     return <Redirect to="/login" />;
   }
   return (
-    <div className={"card text-bg-dark border-dark p-2"}>
-      <UserDisplay user={user} />
-      <TodoForm />
-      <TodoList />
-      <VisiblityCheckbox />
-    </div>
+    <>
+      <div className={"card text-bg-dark border-dark p-2 mt-2 mb-2"}>
+        <UserDisplay user={user} />
+        <TodoForm />
+        <VisiblityCheckbox />
+      </div>
+        <TodoList />
+    </>
   );
 }
