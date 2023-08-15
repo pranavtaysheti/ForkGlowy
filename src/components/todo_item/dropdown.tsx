@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
-import { AppDispatch } from "../../store";
+import { AppDispatch } from "../../state";
 import { type TodoItemArgs } from "./types";
-import { modifyTodo } from "../../tasks";
+import { modifyTodo } from "../../thunk/modify_todo";
 
 function DeleteButton ({ task }: TodoItemArgs) {
   const dispatch = useDispatch<AppDispatch>()

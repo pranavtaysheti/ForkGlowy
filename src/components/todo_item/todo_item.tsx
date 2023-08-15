@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux";
-import { AppDispatch } from "../../store";
-import { modifyTodo } from "../../tasks";
+import { AppDispatch } from "../../state";
+import { modifyTodo } from "../../thunk/modify_todo";
 import { useState } from "react";
 import { type TodoItemArgs } from "./types";
 import OptionsButton from "./dropdown"

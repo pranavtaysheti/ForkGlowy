@@ -1,29 +1,26 @@
 import { useState, useId } from "react";
-import { addTodo, setVisiblity } from "../tasks";
-import { AppDispatch, type RootState } from "../store";
+import { setVisiblity } from "../state/tasks_visiblity";
+import { addTodo } from "../thunk/add_todo"
+import { type AppDispatch, type RootState } from "../state";
 import { useSelector, useDispatch } from "react-redux";
 import TodoItem from "../components/todo_item/todo_item";
 import { Redirect } from "wouter";
-import type { User } from "firebase/auth";
-import { logout } from "../login";
+import { manageUser } from "../thunk/manage_user";
+import { LoginType } from "../state/login_user";
 
-
-type UserDisplayArgs = {
-  user: User;
-};
-
-function UserDisplay({ user }: UserDisplayArgs) {
+function UserDisplay() {
+  const user = useSelector((state: RootState) => state.loginUser.user)
   const dispatch = useDispatch<AppDispatch>();
 
   return (
     <div className={"card text-bg-info border-dark p-2"}>
-      <h3 className={"card-title text-center"}>Welcome! {user.email}</h3>
+      <h3 className={"card-title text-center"}>Welcome! {user?.email}</h3>
       <div className={"d-flex justify-content-center"}>
         <input
           type="button"
           className={"btn btn-danger"}
           value={"Logout"}
-          onClick={(_e) => dispatch(logout())}
+          onClick={(_e) => dispatch(manageUser(LoginType.Logout))}
         />
       </div>
     </div>
@@ -77,7 +74,7 @@ function TodoForm() {
 }
 
 function TodoList() {
-  const tasks = useSelector((state: RootState) => state.tasks);
+  const tasks = useSelector((state: RootState) => state.tasks.tasks);
   const tasksVisiblity = useSelector(
     (state: RootState) => state.tasksVisiblity
   );
@@ -127,15 +124,15 @@ function VisiblityCheckbox() {
   );
 }
 
-export default function TodoDiv() {
-  const user = useSelector((state: RootState) => state.login.user);
+export default function Todo() {
+  const user = useSelector((state: RootState) => state.loginUser.user);
   if (!user) {
     return <Redirect to="/login" />;
   }
   return (
     <>
       <div className={"card text-bg-dark border-dark p-2 mt-2 mb-2"}>
-        <UserDisplay user={user} />
+        <UserDisplay />
         <TodoForm />
         <VisiblityCheckbox />
       </div>
