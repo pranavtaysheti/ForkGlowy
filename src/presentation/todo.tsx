@@ -20,7 +20,7 @@ function UserDisplay() {
           type="button"
           className={"btn btn-danger"}
           value={"Logout"}
-          onClick={(_e) => dispatch(manageUser(LoginType.Logout))}
+          onClick={() => dispatch(manageUser(LoginType.Logout))}
         />
       </div>
     </div>
@@ -67,7 +67,7 @@ function TodoForm() {
         type="submit"
         name="add-task"
         value="Add"
-        onClick={(_e) => submitForm()}
+        onClick={() => submitForm()}
       />
     </div>
   );

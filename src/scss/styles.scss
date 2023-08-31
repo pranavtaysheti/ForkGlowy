@@ -1,3 +1,6 @@
 // Import all of Bootstrap's CSS
 @import "bootstrap/scss/bootstrap.scss";
-@import "bootstrap-icons/font/bootstrap-icons.css";
+
+// Import Bootstrap Icons w/ custom path to fonts folder
+$bootstrap-icons-font-dir: "../node_modules/bootstrap-icons/font/fonts";
+@import "bootstrap-icons/font/bootstrap-icons";

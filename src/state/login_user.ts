@@ -8,7 +8,7 @@ export enum LoginType {
   Login = "LOGIN",
   Register = "REGISTER",
   Logout = "LOGOUT",
-};
+}
 
 
 export type LoginUser = {
@@ -41,10 +41,9 @@ const loginUserSlice = createSlice({
       state.loading = false
       state.error = action.payload ? action.payload : null
     })
-    .addCase(manageUser.fulfilled, (state, action) => {
+    .addCase(manageUser.fulfilled, (state) => {
       state.loading = false
       state.error = null
-      state.userCredential = action.payload;
     })
   }
 })

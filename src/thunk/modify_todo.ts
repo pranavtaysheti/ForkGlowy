@@ -25,20 +25,23 @@ export const modifyTodo = createAsyncThunk<
     const { databaseId, newStatus, newTaskText, deleteThis } = actionData;
     const state = thunkAPI.getState();
     const user = state.loginUser.user;
+    const task = state.tasks.tasks.find((task) => task.databaseId === databaseId)
 
-    if (user) {
-      const uid = user.uid;
-      const taskRef = ref(database, "users/" + uid + "/" + databaseId);
-      if (newStatus) {
-        return update(taskRef, { status: newStatus });
-      }
-      if (newTaskText) {
-        // return update(taskRef, {taskText: newTaskText})
-        // TODO: Impliment redux listeners
-      }
-      if (deleteThis) {
-        return remove(taskRef);
-      }
+    if (!user || !task) {
+      console.log("REJECTED LOL!")
+      return thunkAPI.rejectWithValue(new Error("User or Task not found"))
     }
-  }
+
+    const uid = user.uid;
+    const taskRef = ref(database, "users/" + uid + "/" + databaseId);
+    if (newStatus) {
+      return update(taskRef, { status: newStatus });
+    }
+    if (newTaskText) {
+      return update(taskRef, {taskText: newTaskText})
+    }
+    if (deleteThis) {
+      return remove(taskRef);
+    }
+  },
 );

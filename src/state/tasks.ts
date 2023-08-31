@@ -101,7 +101,7 @@ const tasksSlice = createSlice({
         }
       })
       .addCase(modifyTodo.pending, (state, action) => {
-        const { databaseId, deleteThis, newStatus } = action.meta.arg;
+        const { databaseId, deleteThis, newStatus, newTaskText } = action.meta.arg;
         const tasks = state.tasks;
         for (const i in tasks) {
           if (tasks[i].databaseId === databaseId) {
@@ -110,6 +110,9 @@ const tasksSlice = createSlice({
             }
             if (typeof newStatus === "boolean") {
               tasks[i].status = newStatus;
+            }
+            if (newTaskText) {
+              tasks[i].taskText = newTaskText;
             }
             break;
           }

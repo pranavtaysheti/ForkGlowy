@@ -21,7 +21,7 @@ export const fetchTodos = createAsyncThunk<
     const user = state.loginUser.user
     if (!user) {
         return thunkAPI.rejectWithValue(new Error("User not found in state."))      
-    };
+    }
     const uid = user.uid
     const dbRef = ref(database);
     try {
