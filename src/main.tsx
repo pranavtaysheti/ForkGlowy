@@ -7,8 +7,10 @@ import LoginForm from './presentation/login'
 import { Provider } from 'react-redux'
 import { store } from './state'
 
-//Import listeners 
+//Import bootstrap icons
+import "bootstrap-icons/font/bootstrap-icons.min.css"
 
+//Import listeners 
 import "./observers/firebase_auth"
 import "./listeners/login"
 

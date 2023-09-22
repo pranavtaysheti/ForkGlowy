@@ -1,6 +1,5 @@
-import {  createSlice } from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { nanoid } from "nanoid";
 import { fetchTodos } from "../thunk/fetch_todos";
 import { FirebaseError } from "firebase/app";
 import { addTodo } from "../thunk/add_todo";
@@ -11,17 +10,17 @@ export type Task = {
   taskText: string;
 };
 
+type DatabaseIdTask = Task & {
+  databaseId: string;
+};
+
 enum SyncStatus {
   Local = "LOCAL",
   Synced = "SYNCED",
   Syncing = "SYNCING",
 }
 
-export type DefinedTask = {
-  databaseId: string;
-  requestId: string | null;
-  status?: boolean;
-  taskText?: string;
+export type DefinedTask = DatabaseIdTask & {
   isDeleted: boolean;
   syncStatus: SyncStatus;
 };
@@ -42,8 +41,6 @@ export const taskSeed: TaskContainer = {
   error: null,
 };
 
-
-
 const tasksSlice = createSlice({
   name: "tasks",
   initialState: taskSeed,
@@ -59,7 +56,22 @@ const tasksSlice = createSlice({
           status,
           isDeleted: false,
           syncStatus: SyncStatus.Synced,
-          requestId: null,
+        });
+      }
+    },
+    setTask: (state, action: PayloadAction<DatabaseIdTask>) => {
+      const { databaseId, status, taskText } = action.payload;
+      const task = state.tasks.find(
+        (task) => task.databaseId === action.payload.databaseId
+      );
+
+      if (!task) {
+        state.tasks.push({
+          databaseId,
+          status,
+          taskText,
+          isDeleted: false,
+          syncStatus: SyncStatus.Syncing,
         });
       }
     },
@@ -69,39 +81,34 @@ const tasksSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(addTodo.pending, (state, action) => {
-        const { status, taskText } = action.meta.arg;
-        state.tasks.push({
-          syncStatus: SyncStatus.Syncing,
-          taskText,
-          status,
-          isDeleted: false,
-          requestId: action.meta.requestId,
-          databaseId: nanoid(),
-        });
+      .addCase(addTodo.pending, () => {
+        //DO NOTHING
       })
       .addCase(addTodo.fulfilled, (state, action) => {
         const tasks = state.tasks;
         for (const i in tasks) {
-          if (tasks[i].requestId === action.meta.requestId) {
+          if (tasks[i].databaseId === action.meta.key) {
             tasks[i].syncStatus = SyncStatus.Synced;
             tasks[i].databaseId = action.meta.key;
-            tasks[i].requestId = null;
             break;
           }
         }
       })
       .addCase(addTodo.rejected, (state, action) => {
         const tasks = state.tasks;
+        if (!action.meta.key) {
+          return;
+        }
         for (const i in tasks) {
-          if (tasks[i].requestId === action.meta.requestId) {
+          if (tasks[i].databaseId === action.meta.key) {
             tasks.splice(parseInt(i), 1);
             break;
           }
         }
       })
       .addCase(modifyTodo.pending, (state, action) => {
-        const { databaseId, deleteThis, newStatus, newTaskText } = action.meta.arg;
+        const { databaseId, deleteThis, newStatus, newTaskText } =
+          action.meta.arg;
         const tasks = state.tasks;
         for (const i in tasks) {
           if (tasks[i].databaseId === databaseId) {
@@ -159,6 +166,5 @@ const tasksSlice = createSlice({
   },
 });
 
-
 export const tasksReducer = tasksSlice.reducer;
-export const { setTodos, clearTodos } = tasksSlice.actions;
+export const { setTodos, clearTodos, setTask } = tasksSlice.actions;

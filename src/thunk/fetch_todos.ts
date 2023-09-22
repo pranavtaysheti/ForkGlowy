@@ -6,7 +6,7 @@ import { FirebaseError } from "firebase/app";
 import { setTodos } from "../state/tasks";
 
 export const fetchTodos = createAsyncThunk<
-  null,
+  void,
   undefined,
   {
     state: RootState,
@@ -28,7 +28,6 @@ export const fetchTodos = createAsyncThunk<
       const snapshot = await get(child(dbRef, "users/" + uid))
       const tasks = snapshot.val()
       thunkAPI.dispatch(setTodos(tasks))
-      return thunkAPI.fulfillWithValue(null)
     } catch (e) {
       return thunkAPI.rejectWithValue(e as FirebaseError)
     }
