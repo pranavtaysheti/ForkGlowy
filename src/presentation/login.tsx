@@ -47,17 +47,19 @@ export default function Login() {
   }
   
   return (
-    <div className={"card text-bg-dark border-dark p-2"}>
-      <div className={"card-header"}>
-        <h3 className={"card-title"}> Login </h3>
-      </div>
-      <div className={"card-body"}>
-        <FormField fieldType={FieldType.Username} />
-        <FormField fieldType={FieldType.Password} />
-      </div>
-      <div className={"btn-group mb-2 p-2"}>
-        <SubmitButton buttonType={LoginType.Login}/>
-        <SubmitButton buttonType={LoginType.Register}/>
+    <div className="d-flex flex-column min-vh-100 justify-content-center" >
+      <div className={"card text-bg-dark border-dark p-2"}>
+        <div className={"card-header"}>
+          <h3 className={"card-title"}> Login </h3>
+        </div>
+        <div className={"card-body"}>
+          <FormField fieldType={FieldType.Username} />
+          <FormField fieldType={FieldType.Password} />
+        </div>
+        <div className={"btn-group mb-2 p-2"}>
+          <SubmitButton buttonType={LoginType.Login}/>
+          <SubmitButton buttonType={LoginType.Register}/>
+        </div>
       </div>
     </div>
   );

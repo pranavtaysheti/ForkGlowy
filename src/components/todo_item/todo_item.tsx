@@ -24,6 +24,19 @@ function CheckBox({ task }: TodoItemArgs) {
     );
   }
 
+function DragHandle ({task}: TodoItemArgs) {
+  return (
+    <span
+      draggable = {true}
+      onDragStart={() => console.log("Drag start")}
+      onDragEnd={() => console.log("Drag end")}
+      className="text-light align-self-center ms-n3"
+    >
+      <i className="bi bi-three-dots-vertical"></i>
+    </span>
+  )
+}
+
 function DeleteButton ({ task }: TodoItemArgs) {
   const dispatch = useDispatch<AppDispatch>()
   const { databaseId } = task
@@ -63,9 +76,10 @@ function TodoInput({ task }: TodoItemArgs) {
 export default function TodoItem({ task }: TodoItemArgs) {
   return (
     <li className={"list-group-item bg-transparent d-flex flex-row"}>
+        <DragHandle task={task} />
         <DeleteButton task={task} />
         <CheckBox task={task} />
         <TodoInput task={task} />
     </li>
   );
-  }
+}
