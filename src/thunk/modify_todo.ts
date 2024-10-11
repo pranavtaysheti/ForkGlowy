@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { AppDispatch, RootState } from "../state";
+import { type AppDispatch, type RootState } from "../state";
 import { database } from "../firebase";
 import { ref, update, remove } from "firebase/database";
 import { FirebaseError } from "firebase/app";
@@ -38,7 +38,7 @@ export const modifyTodo = createAsyncThunk<
       return update(taskRef, { status: newStatus });
     }
     if (newTaskText) {
-      return update(taskRef, {taskText: newTaskText})
+      return update(taskRef, { taskText: newTaskText })
     }
     if (deleteThis) {
       return remove(taskRef);

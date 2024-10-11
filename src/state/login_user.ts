@@ -1,6 +1,6 @@
-import { createSlice, type  PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { manageUser } from "../thunk/manage_user";
-import { UserCredential, type User } from "firebase/auth";
+import { type UserCredential, type User } from "firebase/auth";
 import { type FirebaseError } from "firebase/app";
 
 export enum LoginType {
@@ -30,14 +30,15 @@ const loginUserSlice = createSlice({
   initialState: loginUserInitialState,
   reducers: {
     setUser: (state, action: PayloadAction<User | null>) => {
-        state.user = action.payload
+      state.user = action.payload
     },
   },
-  extraReducers: (builder) => { builder
-    .addCase(manageUser.pending, (state) => {
-      state.loading = true
-    })
-    .addCase(manageUser.rejected, (state,action) => {
+  extraReducers: (builder) => {
+    builder
+      .addCase(manageUser.pending, (state) => {
+        state.loading = true
+      })
+    .addCase(manageUser.rejected, (state, action) => {
       state.loading = false
       state.error = action.payload ? action.payload : null
     })

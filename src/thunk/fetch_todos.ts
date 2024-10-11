@@ -1,4 +1,4 @@
-import { AppDispatch, RootState } from "../state";
+import { type AppDispatch, type RootState } from "../state";
 import { database } from "../firebase";
 import { ref, child, get } from "firebase/database";
 import { createAsyncThunk } from "@reduxjs/toolkit";
@@ -16,11 +16,11 @@ export const fetchTodos = createAsyncThunk<
   }
 >(
   "tasks/fetchTodos",
-  async (_,thunkAPI) => {
+  async (_, thunkAPI) => {
     const state = thunkAPI.getState()
     const user = state.loginUser.user
     if (!user) {
-        return thunkAPI.rejectWithValue(new Error("User not found in state."))      
+      return thunkAPI.rejectWithValue(new Error("User not found in state."))
     }
     const uid = user.uid
     const dbRef = ref(database);

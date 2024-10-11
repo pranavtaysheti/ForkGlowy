@@ -1,5 +1,4 @@
-import React  from 'react'
-import ReactDOM from 'react-dom/client'
+import React from 'react'
 import './scss/styles.scss'
 import TodoDiv from './presentation/todo'
 import { Redirect, Route, Switch } from 'wouter'
@@ -14,7 +13,7 @@ import "bootstrap-icons/font/bootstrap-icons.min.css"
 import "./observers/firebase_auth"
 import "./listeners/login"
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+export default () => {
   <React.StrictMode>
     <Switch>
       <Provider store={store}>
@@ -34,4 +33,4 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       </Provider>
     </Switch>
   </React.StrictMode>
-)
+}

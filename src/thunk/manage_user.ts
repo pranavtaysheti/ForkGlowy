@@ -4,7 +4,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  UserCredential,
+  type UserCredential,
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { type AppDispatch, type RootState } from "../state";
@@ -17,11 +17,11 @@ export const manageUser = createAsyncThunk<
     state: RootState,
     rejectValue: Error
   }
-  >(
+>(
   "loginUser/manageUser",
   async (loginType, thunkAPI) => {
     const state = thunkAPI.getState();
-    const { username, password }= state.loginData;
+    const { username, password } = state.loginData;
     let user;
     try {
       switch (loginType) {
@@ -41,5 +41,5 @@ export const manageUser = createAsyncThunk<
 
     } catch (e) {
       return thunkAPI.rejectWithValue(e as Error)
-  }
-});
+    }
+  });
