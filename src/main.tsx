@@ -1,20 +1,27 @@
-import React from 'react'
+//Import Bootstrap CSS
 import './scss/styles.scss'
-import TodoDiv from './presentation/todo'
-import { Redirect, Route, Switch } from 'wouter'
-import LoginForm from './presentation/login'
-import { Provider } from 'react-redux'
-import { store } from './state'
 
 //Import bootstrap icons
 import "bootstrap-icons/font/bootstrap-icons.min.css"
+
+//Import libraries
+import { Provider } from 'react-redux'
+import { Redirect, Route, Switch } from 'wouter'
+
+//Import State Tools
+import { store } from './state'
 
 //Import listeners 
 import "./observers/firebase_auth"
 import "./listeners/login"
 
-export default () => {
-  <React.StrictMode>
+//Import Pages
+import TodoDiv from './presentation/todo'
+import LoginForm from './presentation/login'
+
+
+export default function App() {
+  return (
     <Switch>
       <Provider store={store}>
         <div className={"d-flex justify-content-center"} >
@@ -32,5 +39,5 @@ export default () => {
         </div>
       </Provider>
     </Switch>
-  </React.StrictMode>
+  )
 }
