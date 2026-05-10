@@ -10,23 +10,23 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/react": "^4.1.1",
-    "@reduxjs/toolkit": "^2.5.0",
-    "@types/react": "^18.3.17",
-    "@types/react-dom": "^18.3.5",
-    "astro": "^5.1.0",
-    "bootstrap": "^5.3.3",
-    "bootstrap-icons": "^1.11.3",
+    "@astrojs/check": "^0.9.9",
+    "@astrojs/react": "^5.0.4",
+    "@reduxjs/toolkit": "^2.11.2",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "astro": "^6.3.1",
+    "bootstrap": "^5.3.8",
+    "bootstrap-icons": "^1.13.1",
     "firebase": "^10.14.1",
-    "firebase-tools": "^13.29.1",
+    "firebase-tools": "^13.35.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-redux": "^9.2.0",
     "redux": "^5.0.1",
-    "sass": "^1.83.0",
-    "typescript": "^5.7.2",
-    "wouter": "^3.3.5"
+    "sass": "^1.99.0",
+    "typescript": "^5.9.3",
+    "wouter": "^3.9.0"
   },
-  "packageManager": "pnpm@9.10.0+sha512.73a29afa36a0d092ece5271de5177ecbf8318d454ecd701343131b8ebc0c1a91c487da46ab77c8e596d6acf1461e3594ced4becedf8921b074fbd8653ed7051c"
+  "packageManager": "pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531"
 }
